@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Course Enrollment</title>
+
+    <style>
+        .messages {
+            margin-top: 10px;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+
+</head>
+<body>
+    <h1>Student Course Enrollment</h1>
+
+     <!-- Display Any Messages From Django View -->
+    {% if messages %}
+    <div class="messages">
+        <ul>
+            {% for message in messages %}
+                <li class="message {% if message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %}">
+                    {{ message }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div>
+        <h2>Add Enrollment</h2>
+        <form method="post" action="">
+            {% csrf_token %}
+
+            <!-- Hidden input to store IDs if editing -->
+            <input type="hidden" name="enrollment_id" id="enrollment_id" value="">
+            <input type="hidden" name="student_id" id="student_id" value="">
+            <input type="hidden" name="course_id" id="course_id" value="">
+
+            <label for="student">Student:</label>
+            <select name="student" id="student">
+                {% for student in students %}
+                <option value="{{ student.id }}">{{ student.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="course">Course:</label>
+            <select name="course" id="course">
+                {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.title }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="enrollment_date">Enrollment Date:</label>
+            <input type="date" name="enrollment_date" id="enrollment_date">
+                 
+          
+            <button type="submit">Add Enrollment</button>
+        </form>
+    </div>
+
+    <div>
+        <h2>Enrollment List</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Enrollment Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in page_obj %}
+                <tr>
+                    <td>{{ enrollment.student.name }}</td>
+                    <td>{{ enrollment.course.title }}</td>
+                    <td>{{ enrollment.enrollment_date }}</td>
+                    <td>
+                    <!-- Edit Button -->
+                    <button type="button" onclick="editEnrollment('{{ enrollment.id }}', '{{ enrollment.student.id }}', '{{ enrollment.course.id }}', '{{ enrollment.enrollment_date}}')">Edit</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+     <!-- Pagination navigation -->
+     <div class="pagination">
+        <span>
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <ul style="list-style: none; display: flex; padding: 0;">
+            {% if page_obj.has_previous %}
+            <li style="margin-right: 5px;">
+                <a href="?page=1">First</a>
+            </li>
+            <li style="margin-right: 5px;">
+                <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                <li style="margin-right: 5px; font-weight: bold;">
+                    {{ num }}
+                </li>
+                {% elif num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+                <li style="margin-right: 5px;">
+                    <a href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li style="margin-right: 5px;">
+                <a href="?page={{ page_obj.next_page_number }}">Next</a>
+            </li>
+            <li>
+                <a href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <script>
+        function editEnrollment(enrollment_id, studentId, courseId, enrollmentDate) {
+            //alert(enrollment_id + " : " + studentId + " : " + courseId + " : " + enrollmentDate);
+            // Set values in the form when Edit button is clicked
+            document.getElementById('enrollment_id').value = enrollment_id;
+            document.getElementById('student').value = studentId;
+            document.getElementById('course').value = courseId;
+
+
+            const dinaya = new Date(enrollmentDate); // Parse the date
+            dinaya.setDate(dinaya.getDate());  
+            // Format the date to YYYY-MM-DD
+            const year = dinaya.getFullYear();
+            const month = String(dinaya.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const day = String(dinaya.getDate()).padStart(2, '0');
+            const formatteddinaya = `${year}-${month}-${day}`; // Local date in YYYY-MM-DD format
+
+            document.getElementById('enrollment_date').value = formatteddinaya; // Set the formatted date
+        }
+    </script>
+</body>
+</html>
